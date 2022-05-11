@@ -73,7 +73,7 @@ int get_socket(void)
     return listener; //listen ok
 }
 
-// Add a new fd to the set
+// Add a new fd to the set                        
 void addToClientList(struct pollfd *clientList[], int newfd, int *fd_count, int *fd_size)
 {
     // If we don't have room, add more space in the pfds array
@@ -99,6 +99,16 @@ int checkBlock(const char *str)
 {
     char *result;
     result = strstr(str, "BLOCKME");
+    if(result == NULL )
+        return 0;
+    else
+        return 1;
+}
+
+int checkClose(const char *str)
+{
+    char *result;
+    result = strstr(str, "CLOSEME");
     if(result == NULL )
         return 0;
     else
@@ -185,17 +195,33 @@ int main(void)
                             //bonus
                        if(!checkBlock(clientBuff))
                        {
-                            for(int j = 0; j < clientCount; j++) 
-                            {
-                                int destClient = clientList[j].fd;
-                                if (destClient != servSocket && destClient != clientSend) 
+                           if(!checkClose(clientBuff))
+                           {
+                                for(int j = 0; j < clientCount; j++) 
                                 {
-                                    if (send(destClient, clientBuff, nbytes, 0) == -1) 
+                                    int destClient = clientList[j].fd;
+                                    if (destClient != servSocket && destClient != clientSend) 
                                     {
-                                        perror("Error send");
-                                    }
+                                        if (send(destClient, clientBuff, nbytes, 0) == -1) 
+                                        {
+                                            perror("Error send");
+                                        }
+                                    }   
                                 }
                             }
+                            else
+                            {
+                                for(int j = 0; j < clientCount; j++) 
+                                {
+                                    if(clientList[j].fd == clientSend)
+                                    {
+                                        close(clientList[j].fd); 
+                                        dellFromClientList(clientList, j, &clientCount);
+                                        break;
+                                   }
+                                }
+                                
+                            }   
                         }
                     } 
                 } 

@@ -11,6 +11,7 @@
 
 #define PORT "8034"  
 
+
 // Get sockaddr:
 void *get_address(struct sockaddr *socketAddr)
 {
@@ -94,6 +95,15 @@ void dellFromClientList(struct pollfd clientList[], int i, int *fd_count)
     (*fd_count)--;
 }
 
+int checkBlock(const char *str)
+{
+    char *result;
+    result = strstr(str, "BLOCKME");
+    if(result == NULL )
+        return 0;
+    else
+        return 1;
+}
 
 int main(void)
 {
@@ -123,7 +133,8 @@ int main(void)
 
     clientCount = 1; 
 
-    for(;;) {
+    for(;;) 
+    {
         int poll_count = poll(clientList, clientCount, -1);
         if (poll_count == -1) 
         {
@@ -171,21 +182,26 @@ int main(void)
                     } 
                     else //if data
                     {
-                       for(int j = 0; j < clientCount; j++) 
+                            //bonus
+                       if(!checkBlock(clientBuff))
                        {
-                            int destClient = clientList[j].fd;
-                            if (destClient != servSocket && destClient != clientSend) 
+                            for(int j = 0; j < clientCount; j++) 
                             {
-                                if (send(destClient, clientBuff, nbytes, 0) == -1) 
+                                int destClient = clientList[j].fd;
+                                if (destClient != servSocket && destClient != clientSend) 
                                 {
-                                    perror("Error send");
+                                    if (send(destClient, clientBuff, nbytes, 0) == -1) 
+                                    {
+                                        perror("Error send");
+                                    }
                                 }
                             }
                         }
-                    }
+                    } 
                 } 
             } 
-        } 
-    }     
-    return 0;
+        }     
+    
+    }
+return 0;
 }

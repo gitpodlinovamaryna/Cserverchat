@@ -217,6 +217,7 @@ int main(void)
                                     {
                                         close(clientList[j].fd); 
                                         dellFromClientList(clientList, j, &clientCount);
+                                        printf("Server: client %d disconnect\n", clientSend);
                                         break;
                                    }
                                 }
